@@ -8,28 +8,34 @@ JWTs are used for authentication objects.
 
 ## Deployment
 
-In order for the server to work correctly it must be configured by providing a `config.js` file.
+In order for the server to work correctly it must be configured by providing a `.env` file with your secrets. Copy the `.env.example` file to `.env` and fill in your values:
 
-```js
-module.exports =  {
-    // Your JWT secret can be any random string you would like. It just needs to be secret.
-   jwtSecret: 'yourjwtsecrethere',
-   db: {
-   connection: {
-      host: '127.0.0.1',
-      user: 'root',
-      password: 'yourpasswordhere',
-      database: 'pizza',
-      connectTimeout: 60000,
-   },
-   listPerPage: 10,
-   },
-   factory: {
-   url: 'https://pizza-factory.cs329.click',
-   apiKey: 'yourapikeyhere',
-   },
-};
+```bash
+cp .env.example .env
 ```
+
+Then edit `.env` with your actual values:
+
+```bash
+# JWT Secret - Any random string for signing JWTs
+JWT_SECRET=yourjwtsecrethere
+
+# Database Configuration
+DB_HOST=127.0.0.1
+DB_USER=root
+DB_PASSWORD=yourpasswordhere
+DB_DATABASE=pizza
+DB_CONNECT_TIMEOUT=60000
+
+# Database Pagination
+DB_LIST_PER_PAGE=10
+
+# Pizza Factory Configuration
+FACTORY_URL=https://pizza-factory.cs329.click
+FACTORY_API_KEY=yourapikeyhere
+```
+
+The `.env` file is already in `.gitignore` so your secrets won't be committed to git.
 
 ## Endpoints
 
