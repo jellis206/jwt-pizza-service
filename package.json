@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/index.js",
     "test": "jest --coverage --coverageReporters=text-summary --coverageReporters=json-summary",
+    "coverage": "jest --coverage --coverageReporters=html --coverageReporters=text",
     "lint": "eslint src/**/*.js",
     "prepare": "husky"
   },
