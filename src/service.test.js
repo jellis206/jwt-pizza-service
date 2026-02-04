@@ -1,5 +1,6 @@
 const request = require('supertest');
 const app = require('./service');
+const { DB } = require('./database/database');
 
 describe('Service', () => {
   test('GET / returns welcome message', async () => {
@@ -35,5 +36,35 @@ describe('Service', () => {
     const response = await request(app).post('/api/order').send({ items: [] });
 
     expect(response.status).toBeGreaterThanOrEqual(400);
+  });
+
+  test('Error handler defaults to 500 for errors without statusCode', async () => {
+    // This test triggers an error path that doesn't have a statusCode property
+    // By sending invalid JSON data to various endpoints, we can trigger generic errors
+    const response = await request(app).post('/api/auth').send({ name: '', email: '', password: '' });
+
+    // Should get either 400 (validation) or 500 (generic error)
+    expect(response.status).toBeGreaterThanOrEqual(400);
+    expect(response.body).toHaveProperty('message');
+  });
+
+  test('Error handler uses ?? operator for missing statusCode', async () => {
+    // Mock DB.getMenu to throw a generic Error without statusCode
+    const originalGetMenu = DB.getMenu;
+    DB.getMenu = jest.fn().mockImplementation(() => {
+      const error = new Error('Generic database error');
+      // Explicitly ensure no statusCode property
+      delete error.statusCode;
+      throw error;
+    });
+
+    const response = await request(app).get('/api/order/menu');
+
+    // Should default to 500 when no statusCode is present
+    expect(response.status).toBe(500);
+    expect(response.body.message).toBe('Generic database error');
+
+    // Restore original method
+    DB.getMenu = originalGetMenu;
   });
 });

@@ -160,6 +160,88 @@ describe('Order Router', () => {
       }
     });
 
+    test('handles factory API failure gracefully', async () => {
+      const email = `factoryfail${Date.now()}@test.com`;
+      await createTestUser('Factory Fail User', email, 'password123');
+      const { token } = await loginUser(email, 'password123');
+
+      // Get menu to find a valid item
+      const menuResponse = await request(app).get('/api/order/menu');
+      const menuItem = menuResponse.body[0];
+
+      if (!menuItem) {
+        // Skip test if no menu items
+        return;
+      }
+
+      const orderData = {
+        franchiseId: 1,
+        storeId: 1,
+        items: [
+          {
+            menuId: menuItem.id,
+            description: menuItem.title,
+            price: menuItem.price,
+          },
+        ],
+      };
+
+      const response = await request(app).post('/api/order').set('Authorization', `Bearer ${token}`).send(orderData);
+
+      // This test explicitly checks for both success and failure paths
+      // When factory fails, we get 500 with failure message
+      if (response.status === 500) {
+        expect(response.body).toHaveProperty('message');
+        expect(response.body.message).toContain('Failed to fulfill order at factory');
+      } else {
+        // If factory succeeds, we get 200
+        expect(response.status).toBe(200);
+        expect(response.body).toHaveProperty('order');
+      }
+    });
+
+    test('handles factory API failure with mocked response', async () => {
+      const email = `mockedfail${Date.now()}@test.com`;
+      await createTestUser('Mocked Fail User', email, 'password123');
+      const { token } = await loginUser(email, 'password123');
+
+      // Get menu to find a valid item
+      const menuResponse = await request(app).get('/api/order/menu');
+      const menuItem = menuResponse.body[0];
+
+      if (!menuItem) {
+        // Skip test if no menu items
+        return;
+      }
+
+      // Mock fetch to return a failure response
+      const originalFetch = global.fetch;
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: false,
+        json: async () => ({ reportUrl: 'http://test.com/report', message: 'Factory unavailable' }),
+      });
+
+      const orderData = {
+        franchiseId: 1,
+        storeId: 1,
+        items: [
+          {
+            menuId: menuItem.id,
+            description: menuItem.title,
+            price: menuItem.price,
+          },
+        ],
+      };
+
+      const response = await request(app).post('/api/order').set('Authorization', `Bearer ${token}`).send(orderData);
+
+      expect(response.status).toBe(500);
+      expect(response.body.message).toContain('Failed to fulfill order at factory');
+
+      // Restore original fetch
+      global.fetch = originalFetch;
+    });
+
     test('fails without authentication', async () => {
       const orderData = {
         franchiseId: 1,

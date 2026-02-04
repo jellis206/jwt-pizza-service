@@ -1,6 +1,7 @@
 const request = require('supertest');
 const app = require('../service');
 const { DB, Role } = require('../database/database');
+const jwt = require('jsonwebtoken');
 
 // Helper function to create a test user
 async function createTestUser(name = 'Test User', email = `test${Date.now()}@test.com`, password = 'password123') {
@@ -134,6 +135,47 @@ describe('Auth Router', () => {
 
       expect(response.status).toBe(401);
       expect(response.body.message).toBe('unauthorized');
+    });
+
+    test('handles JWT with invalid signature', async () => {
+      // Create a JWT-like string with invalid signature
+      const fakeToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTIzfQ.invalid_signature';
+      const response = await request(app).get('/api/order').set('Authorization', `Bearer ${fakeToken}`);
+
+      expect(response.status).toBe(401);
+      expect(response.body.message).toBe('unauthorized');
+    });
+
+    test('handles completely invalid JWT format', async () => {
+      // Send a completely invalid token format
+      const response = await request(app).get('/api/order').set('Authorization', 'Bearer not-a-jwt-at-all');
+
+      expect(response.status).toBe(401);
+      expect(response.body.message).toBe('unauthorized');
+    });
+
+    test('handles empty bearer token', async () => {
+      const response = await request(app).get('/api/order').set('Authorization', 'Bearer ');
+
+      expect(response.status).toBe(401);
+      expect(response.body.message).toBe('unauthorized');
+    });
+
+    test('catches JWT verification errors', async () => {
+      // Create a token with wrong secret that will pass isLoggedIn but fail jwt.verify
+      const fakeToken = jwt.sign({ id: 999, name: 'Fake', email: 'fake@test.com' }, 'wrong-secret');
+
+      // Mock isLoggedIn to return true so we reach jwt.verify
+      const originalIsLoggedIn = DB.isLoggedIn;
+      DB.isLoggedIn = jest.fn().mockResolvedValue(true);
+
+      const response = await request(app).get('/api/order').set('Authorization', `Bearer ${fakeToken}`);
+
+      expect(response.status).toBe(401);
+      expect(response.body.message).toBe('unauthorized');
+
+      // Restore original method
+      DB.isLoggedIn = originalIsLoggedIn;
     });
   });
 });
