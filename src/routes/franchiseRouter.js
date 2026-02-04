@@ -11,7 +11,17 @@ franchiseRouter.docs = [
     path: '/api/franchise?page=0&limit=10&name=*',
     description: 'List all the franchises',
     example: `curl localhost:3000/api/franchise&page=0&limit=10&name=pizzaPocket`,
-    response: { franchises: [{ id: 1, name: 'pizzaPocket', admins: [{ id: 4, name: 'pizza franchisee', email: 'f@jwt.com' }], stores: [{ id: 1, name: 'SLC', totalRevenue: 0 }] }], more: true },
+    response: {
+      franchises: [
+        {
+          id: 1,
+          name: 'pizzaPocket',
+          admins: [{ id: 4, name: 'pizza franchisee', email: 'f@jwt.com' }],
+          stores: [{ id: 1, name: 'SLC', totalRevenue: 0 }],
+        },
+      ],
+      more: true,
+    },
   },
   {
     method: 'GET',
@@ -19,7 +29,14 @@ franchiseRouter.docs = [
     requiresAuth: true,
     description: `List a user's franchises`,
     example: `curl localhost:3000/api/franchise/4  -H 'Authorization: Bearer tttttt'`,
-    response: [{ id: 2, name: 'pizzaPocket', admins: [{ id: 4, name: 'pizza franchisee', email: 'f@jwt.com' }], stores: [{ id: 4, name: 'SLC', totalRevenue: 0 }] }],
+    response: [
+      {
+        id: 2,
+        name: 'pizzaPocket',
+        admins: [{ id: 4, name: 'pizza franchisee', email: 'f@jwt.com' }],
+        stores: [{ id: 4, name: 'SLC', totalRevenue: 0 }],
+      },
+    ],
   },
   {
     method: 'POST',
