@@ -119,4 +119,21 @@ describe('Auth Router', () => {
       expect(response.body.message).toBe('unauthorized');
     });
   });
+
+  describe('Authentication middleware', () => {
+    test('handles malformed JWT gracefully', async () => {
+      // Send a request with a malformed JWT
+      const response = await request(app).get('/api/user/me').set('Authorization', 'Bearer malformed.jwt.token');
+
+      expect(response.status).toBe(401);
+      expect(response.body.message).toBe('unauthorized');
+    });
+
+    test('handles request without auth token', async () => {
+      const response = await request(app).get('/api/user/me');
+
+      expect(response.status).toBe(401);
+      expect(response.body.message).toBe('unauthorized');
+    });
+  });
 });

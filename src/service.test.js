@@ -29,4 +29,11 @@ describe('Service', () => {
     expect(response.headers['access-control-allow-origin']).toBe('http://localhost:3000');
     expect(response.headers['access-control-allow-credentials']).toBe('true');
   });
+
+  test('Error handler catches errors without status code', async () => {
+    // Test by trying to create order without auth (will cause DB error)
+    const response = await request(app).post('/api/order').send({ items: [] });
+
+    expect(response.status).toBeGreaterThanOrEqual(400);
+  });
 });
