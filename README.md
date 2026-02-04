@@ -1,6 +1,6 @@
 # 🍕 jwt-pizza-service
 
-![Coverage badge](https://pizza-factory.cs329.click/api/badge/jge26/jwtpizzaservicecoverage)
+[![Coverage](https://pizza-factory.cs329.click/api/badge/jge26/jwtpizzaservicecoverage)](https://github.com/jellis206/jwt-pizza-service)
 
 [![CI Pipeline](https://github.com/jellis206/jwt-pizza-service/actions/workflows/ci.yml/badge.svg)](https://github.com/jellis206/jwt-pizza-service/actions/workflows/ci.yml)
 
