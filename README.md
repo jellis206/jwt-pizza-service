@@ -1,8 +1,7 @@
 # 🍕 jwt-pizza-service
 
-Note to the TA: I am not sure why this is busted, if you follow the link manually in your browser you will see my test coverage badge correctly but for the life of me I cannot get github to render it properly and I don't know why!!! ![Coverage badge](https://pizza-factory.cs329.click/api/badge/jge26/jwtpizzaservicecoverage)
-
 [![CI Pipeline](https://github.com/jellis206/jwt-pizza-service/actions/workflows/ci.yml/badge.svg)](https://github.com/jellis206/jwt-pizza-service/actions/workflows/ci.yml)
+![Coverage badge](https://pizza-factory.cs329.click/api/badge/jge26/jwtpizzaservicecoverage?v=1)
 
 Backend service for making JWT pizzas. This service tracks users and franchises and orders pizzas. All order requests are passed to the JWT Pizza Factory where the pizzas are made.
 
