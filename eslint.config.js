@@ -1,4 +1,5 @@
 const globals = require('globals');
+const prettierConfig = require('eslint-config-prettier');
 
 module.exports = [
   {
@@ -12,8 +13,9 @@ module.exports = [
       },
     },
     rules: {
-      'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      'no-unused-vars': ['error', { argsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
       'no-console': 'off',
     },
   },
+  prettierConfig,
 ];
