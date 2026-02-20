@@ -109,15 +109,28 @@ describe('User Router', () => {
   });
 
   describe('DELETE /api/user/:userId', () => {
-    test('returns not implemented', async () => {
-      const email = `deleteuser${Date.now()}@test.com`;
-      await createTestUser('Delete User', email, 'password123');
-      const { token } = await loginUser(email, 'password123');
+    test('admin can delete a user', async () => {
+      const targetEmail = `deletetarget${Date.now()}@test.com`;
+      const targetUser = await createTestUser('Delete Target', targetEmail, 'password123');
 
-      const response = await request(app).delete('/api/user/1').set('Authorization', `Bearer ${token}`);
+      const adminUser = await createAdminUser();
+      const { token } = await loginUser(adminUser.email, 'adminpass');
+
+      const response = await request(app).delete(`/api/user/${targetUser.id}`).set('Authorization', `Bearer ${token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.message).toBe('not implemented');
+      expect(response.body.message).toBe('user deleted');
+    });
+
+    test('non-admin cannot delete user', async () => {
+      const email = `deleteuser${Date.now()}@test.com`;
+      const user = await createTestUser('Delete User', email, 'password123');
+      const { token } = await loginUser(email, 'password123');
+
+      const response = await request(app).delete(`/api/user/${user.id}`).set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).toBe(403);
+      expect(response.body.message).toBe('unauthorized');
     });
 
     test('fails without authentication', async () => {
@@ -128,17 +141,51 @@ describe('User Router', () => {
   });
 
   describe('GET /api/user', () => {
-    test('returns not implemented', async () => {
+    test('admin can list users', async () => {
+      const adminUser = await createAdminUser();
+      const { token } = await loginUser(adminUser.email, 'adminpass');
+
+      const response = await request(app).get('/api/user').set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body.users)).toBe(true);
+      expect(typeof response.body.more).toBe('boolean');
+    });
+
+    test('admin can list users with pagination', async () => {
+      const adminUser = await createAdminUser();
+      const { token } = await loginUser(adminUser.email, 'adminpass');
+
+      const response = await request(app).get('/api/user?page=0&limit=2').set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body.users)).toBe(true);
+      expect(response.body.users.length).toBeLessThanOrEqual(2);
+    });
+
+    test('admin can filter users by name', async () => {
+      const uniqueName = `UniqueTestUser${Date.now()}`;
+      await createTestUser(uniqueName, `filter${Date.now()}@test.com`, 'password123');
+
+      const adminUser = await createAdminUser();
+      const { token } = await loginUser(adminUser.email, 'adminpass');
+
+      const response = await request(app).get(`/api/user?name=*${uniqueName}*`).set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.users.length).toBeGreaterThan(0);
+      expect(response.body.users[0].name).toBe(uniqueName);
+    });
+
+    test('non-admin cannot list users', async () => {
       const email = `listuser${Date.now()}@test.com`;
       await createTestUser('List User', email, 'password123');
       const { token } = await loginUser(email, 'password123');
 
       const response = await request(app).get('/api/user').set('Authorization', `Bearer ${token}`);
 
-      expect(response.status).toBe(200);
-      expect(response.body.message).toBe('not implemented');
-      expect(response.body.users).toEqual([]);
-      expect(response.body.more).toBe(false);
+      expect(response.status).toBe(403);
+      expect(response.body.message).toBe('unauthorized');
     });
 
     test('fails without authentication', async () => {
