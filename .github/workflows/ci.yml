@@ -55,6 +55,12 @@ jobs:
               url: 'https://pizza-factory.cs329.click',
               apiKey: '${{ secrets.FACTORY_API_KEY }}',
             },
+            metrics: {
+              source: 'jwt-pizza-service-dev',
+              endpointUrl: '',
+              userId: '',
+              apiKey: '',
+            },
           };" > src/config.js
 
       - name: Tests
@@ -82,6 +88,10 @@ jobs:
           sed -i "s/root/${{ secrets.DB_USERNAME }}/g" dist/config.js
           sed -i "s/tempdbpassword/${{ secrets.DB_PASSWORD }}/g" dist/config.js
           sed -i "s/127.0.0.1/${{ secrets.DB_HOSTNAME }}/g" dist/config.js
+          sed -i "s|source: 'jwt-pizza-service-dev'|source: 'jwt-pizza-service'|g" dist/config.js
+          sed -i "s|endpointUrl: ''|endpointUrl: '${{ secrets.METRICS_ENDPOINT_URL }}'|g" dist/config.js
+          sed -i "s|userId: ''|userId: '${{ secrets.METRICS_USER_ID }}'|g" dist/config.js
+          sed -i "s|apiKey: ''|apiKey: '${{ secrets.METRICS_API_KEY }}'|g" dist/config.js
 
       - name: Update distribution artifact
         uses: actions/upload-artifact@v4
