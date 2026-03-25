@@ -37,8 +37,17 @@ class Logger {
   }
 
   sanitize(logData) {
-    let data = JSON.stringify(logData);
+    let data = JSON.stringify({ _msg: this.toMessage(logData), ...logData });
     return data.replace(/"password"\s*:\s*"(?:[^"\\]|\\.)*"/g, '"password":"*****"');
+  }
+
+  toMessage(logData) {
+    if (logData.method && logData.path) return `${logData.method} ${logData.path} ${logData.statusCode ?? ''}`.trim();
+    if (logData.sql) return logData.sql.slice(0, 80);
+    if (logData.request) return `factory request`;
+    if (logData.response) return `factory response`;
+    if (logData.message) return logData.message;
+    return 'log';
   }
 
   sendLogToVictoriaLogs(event) {
