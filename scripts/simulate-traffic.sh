@@ -107,7 +107,26 @@ for (( i=0; i<max_workers; i++ )); do
   printf '\n' >&9
 done
 
-success=0; failure=0; completed=0
+# Results pipe — workers write one status line each; a single reader counts them.
+# No shared mutable state, no race conditions.
+RESULT_PIPE=$(mktemp -u)
+mkfifo "$RESULT_PIPE"
+exec 8<>"$RESULT_PIPE"
+rm "$RESULT_PIPE"
+
+# Single reader process: counts results as they arrive, prints progress
+count_results() {
+  local ok=0 fail=0 done=0 result
+  while IFS= read -r result <&8; do
+    [[ "$result" == "DONE" ]] && break
+    (( done++ ))
+    if [[ "$result" == "200" ]]; then (( ok++ )); else (( fail++ )); fi
+    echo "[$done/$num_buyers] status=$result ok=$ok fail=$fail"
+  done
+  echo "Done. $ok successful, $fail failed out of $num_buyers cycles."
+}
+count_results &
+COUNTER_PID=$!
 
 for (( i=1; i<=num_buyers; i++ )); do
   # Block until a worker slot is free
@@ -115,15 +134,8 @@ for (( i=1; i<=num_buyers; i++ )); do
 
   {
     status=$(buy_cycle)
-    if [[ "$status" == "200" ]]; then
-      (( success++ ))
-    else
-      (( failure++ ))
-    fi
-    (( completed++ ))
-    echo "[$completed/$num_buyers] status=${status:-err} ok=$success fail=$failure"
-    # Return the slot
-    printf '\n' >&9
+    echo "${status:-err}" >&8   # send result to counter
+    printf '\n' >&9              # return semaphore slot
   } &
 
   # Small stagger to avoid thundering herd on startup
@@ -131,5 +143,6 @@ for (( i=1; i<=num_buyers; i++ )); do
 done
 
 # Wait for all in-flight workers to finish
-wait
-echo "Done. $success successful purchases, $failure failures out of $num_buyers cycles."
+wait                        # wait for all worker subshells
+echo "DONE" >&8             # signal the counter reader to finish
+wait "$COUNTER_PID"         # wait only for the counter, not the infinite loops
