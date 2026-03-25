@@ -61,6 +61,12 @@ jobs:
               userId: '',
               apiKey: '',
             },
+            logging: {
+              source: 'jwt-pizza-service-logging-dev',
+              endpointUrl: 'logging-endpoint-placeholder',
+              accountId: 'logging-account-placeholder',
+              apiKey: 'logging-api-key-placeholder',
+            },
           };" > src/config.js
 
       - name: Tests
@@ -92,6 +98,10 @@ jobs:
           sed -i "s|endpointUrl: ''|endpointUrl: '${{ secrets.METRICS_ENDPOINT_URL }}'|g" dist/config.js
           sed -i "s|userId: ''|userId: '${{ secrets.METRICS_USER_ID }}'|g" dist/config.js
           sed -i "s|apiKey: ''|apiKey: '${{ secrets.METRICS_API_KEY }}'|g" dist/config.js
+          sed -i "s|logging-endpoint-placeholder|${{ secrets.LOGGING_ENDPOINT_URL }}|g" dist/config.js
+          sed -i "s|logging-account-placeholder|${{ secrets.LOGGING_ACCOUNT_ID }}|g" dist/config.js
+          sed -i "s|logging-api-key-placeholder|${{ secrets.LOGGING_API_KEY }}|g" dist/config.js
+          sed -i "s|jwt-pizza-service-logging-dev|jwt-pizza-service|g" dist/config.js
 
       - name: Update distribution artifact
         uses: actions/upload-artifact@v4
