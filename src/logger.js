@@ -9,8 +9,8 @@ class Logger {
         path: req.originalUrl,
         method: req.method,
         statusCode: res.statusCode,
-        reqBody: JSON.stringify(req.body),
-        resBody: JSON.stringify(resBody),
+        reqBody: typeof req.body === 'string' ? req.body : JSON.stringify(req.body),
+        resBody: typeof resBody === 'string' ? resBody : JSON.stringify(resBody),
       };
       const level = this.statusToLogLevel(res.statusCode);
       this.log(level, 'http', logData);
@@ -38,7 +38,7 @@ class Logger {
 
   sanitize(logData) {
     let data = JSON.stringify(logData);
-    return data.replace(/"password"\s*:\s*"[^"]*"/g, '"password":"*****"');
+    return data.replace(/"password"\s*:\s*"(?:[^"\\]|\\.)*"/g, '"password":"*****"');
   }
 
   sendLogToVictoriaLogs(event) {
@@ -53,7 +53,7 @@ class Logger {
       },
     })
       .then((res) => {
-        if (!res.ok) console.log('Failed to send log to VictoriaLogs');
+        if (!res.ok) res.text().then((t) => console.log(`Failed to send log to VictoriaLogs (${res.status}): ${t}`));
       })
       .catch((err) => {
         console.log('Error sending log to VictoriaLogs', err.message);
