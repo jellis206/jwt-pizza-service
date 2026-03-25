@@ -98,11 +98,18 @@ describe('metrics module', () => {
     });
 
     it('does not double-count the same user', () => {
-      // Login the same user twice — only one entry should exist in the set
       metrics.trackUserLogin(99);
       metrics.trackUserLogin(99);
-      // We verify no error; the Set size assertion is implicit in the metrics gauge value test
-      expect(() => metrics.trackUserLogin(99)).not.toThrow();
+      metrics.trackUserLogin(99);
+      expect(metrics.getActiveUserCount()).toBe(1);
+    });
+
+    it('counts distinct users separately', () => {
+      metrics.trackUserLogin(1);
+      metrics.trackUserLogin(2);
+      expect(metrics.getActiveUserCount()).toBe(2);
+      metrics.trackUserLogout(1);
+      expect(metrics.getActiveUserCount()).toBe(1);
     });
   });
 

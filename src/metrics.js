@@ -54,6 +54,10 @@ function trackUserLogout(userId) {
   activeUserSet.delete(userId);
 }
 
+function getActiveUserCount() {
+  return activeUserSet.size;
+}
+
 function recordPizzaPurchase(success, latencyMs, revenue) {
   if (success) {
     pizzas.sold++;
@@ -162,6 +166,7 @@ module.exports = {
   recordAuth,
   trackUserLogin,
   trackUserLogout,
+  getActiveUserCount,
   recordPizzaPurchase,
   sendMetricsPeriodically,
 };
