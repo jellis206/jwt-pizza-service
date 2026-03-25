@@ -7,7 +7,7 @@ const startTime = Date.now() * 1_000_000;
 // In-memory counters
 const requests = { total: 0, GET: 0, POST: 0, PUT: 0, DELETE: 0 };
 const auth = { success: 0, failure: 0 };
-let activeUsers = 0;
+const activeUserSet = new Set();
 const pizzas = { sold: 0, failures: 0, revenue: 0 };
 const latency = { serviceTotal: 0, pizzaTotal: 0 };
 const latencyByEndpoint = {};
@@ -46,9 +46,12 @@ function recordAuth(success) {
   }
 }
 
-function updateActiveUsers(delta) {
-  activeUsers += delta;
-  if (activeUsers < 0) activeUsers = 0;
+function trackUserLogin(userId) {
+  activeUserSet.add(userId);
+}
+
+function trackUserLogout(userId) {
+  activeUserSet.delete(userId);
 }
 
 function recordPizzaPurchase(success, latencyMs, revenue) {
@@ -97,7 +100,7 @@ function buildMetrics() {
   metrics.push(createMetric('auth_attempts_total', auth.failure, '1', 'sum', { result: 'failure' }));
 
   // Active users
-  metrics.push(createMetric('active_users', activeUsers, '1', 'gauge'));
+  metrics.push(createMetric('active_users', activeUserSet.size, '1', 'gauge'));
 
   // System metrics
   metrics.push(createMetric('cpu_percent', getCpuUsagePercentage(), '%', 'gauge'));
@@ -154,4 +157,11 @@ function sendMetricsPeriodically(intervalMs) {
   }, intervalMs);
 }
 
-module.exports = { requestTracker, recordAuth, updateActiveUsers, recordPizzaPurchase, sendMetricsPeriodically };
+module.exports = {
+  requestTracker,
+  recordAuth,
+  trackUserLogin,
+  trackUserLogout,
+  recordPizzaPurchase,
+  sendMetricsPeriodically,
+};

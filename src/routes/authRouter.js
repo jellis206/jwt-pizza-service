@@ -66,7 +66,7 @@ authRouter.post(
     }
     const user = await DB.addUser({ name, email, password, roles: [{ role: Role.Diner }] });
     const auth = await setAuth(user);
-    metrics.updateActiveUsers(1);
+    metrics.trackUserLogin(user.id);
     metrics.recordAuth(true);
     res.json({ user: user, token: auth });
   })
@@ -80,7 +80,7 @@ authRouter.put(
     try {
       const user = await DB.getUser(email, password);
       const auth = await setAuth(user);
-      metrics.updateActiveUsers(1);
+      metrics.trackUserLogin(user.id);
       metrics.recordAuth(true);
       res.json({ user: user, token: auth });
     } catch (err) {
@@ -95,7 +95,7 @@ authRouter.delete(
   '/',
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
-    metrics.updateActiveUsers(-1);
+    metrics.trackUserLogout(req.user.id);
     await clearAuth(req);
     res.json({ message: 'logout successful' });
   })
