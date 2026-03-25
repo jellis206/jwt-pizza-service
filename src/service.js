@@ -1,4 +1,5 @@
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const { authRouter, setAuthUser } = require('./routes/authRouter.js');
 const orderRouter = require('./routes/orderRouter.js');
 const franchiseRouter = require('./routes/franchiseRouter.js');
@@ -10,6 +11,15 @@ const config = require('./config.js');
 
 const app = express();
 app.use(express.json());
+app.use(
+  rateLimit({
+    windowMs: 60 * 1000,
+    max: 1000,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { message: 'Too many requests, please try again later.' },
+  })
+);
 app.use(setAuthUser);
 app.use(metrics.requestTracker);
 app.use(logger.httpLogger);

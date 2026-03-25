@@ -7,6 +7,17 @@ const dbModel = require('./dbModel.js');
 const logger = require('../logger.js');
 class DB {
   constructor() {
+    this.pool = mysql.createPool({
+      host: config.db.connection.host,
+      user: config.db.connection.user,
+      password: config.db.connection.password,
+      database: config.db.connection.database,
+      connectTimeout: config.db.connection.connectTimeout,
+      waitForConnections: true,
+      connectionLimit: 15,
+      queueLimit: 0,
+      decimalNumbers: true,
+    });
     this.initialized = this.initializeDatabase();
   }
 
@@ -16,7 +27,7 @@ class DB {
       const rows = await this.query(connection, `SELECT * FROM menu`);
       return rows;
     } finally {
-      connection.end();
+      connection.release();
     }
   }
 
@@ -30,7 +41,7 @@ class DB {
       );
       return { ...item, id: addResult.insertId };
     } finally {
-      connection.end();
+      connection.release();
     }
   }
 
@@ -68,7 +79,7 @@ class DB {
       }
       return { ...user, id: userId, password: undefined };
     } finally {
-      connection.end();
+      connection.release();
     }
   }
 
@@ -88,7 +99,7 @@ class DB {
 
       return { ...user, roles: roles, password: undefined };
     } finally {
-      connection.end();
+      connection.release();
     }
   }
 
@@ -112,7 +123,7 @@ class DB {
       }
       return this.getUser(email, password);
     } finally {
-      connection.end();
+      connection.release();
     }
   }
 
@@ -126,7 +137,7 @@ class DB {
         [token, userId]
       );
     } finally {
-      connection.end();
+      connection.release();
     }
   }
 
@@ -137,7 +148,7 @@ class DB {
       const authResult = await this.query(connection, `SELECT userId FROM auth WHERE token=?`, [token]);
       return authResult.length > 0;
     } finally {
-      connection.end();
+      connection.release();
     }
   }
 
@@ -147,7 +158,7 @@ class DB {
     try {
       await this.query(connection, `DELETE FROM auth WHERE token=?`, [token]);
     } finally {
-      connection.end();
+      connection.release();
     }
   }
 
@@ -170,7 +181,7 @@ class DB {
       }
       return { dinerId: user.id, orders: orders, page };
     } finally {
-      connection.end();
+      connection.release();
     }
   }
 
@@ -193,7 +204,7 @@ class DB {
       }
       return { ...order, id: orderId };
     } finally {
-      connection.end();
+      connection.release();
     }
   }
 
@@ -222,7 +233,7 @@ class DB {
 
       return franchise;
     } finally {
-      connection.end();
+      connection.release();
     }
   }
 
@@ -240,7 +251,7 @@ class DB {
         throw new StatusCodeError('unable to delete franchise', 500);
       }
     } finally {
-      connection.end();
+      connection.release();
     }
   }
 
@@ -273,7 +284,7 @@ class DB {
       }
       return [franchises, more];
     } finally {
-      connection.end();
+      connection.release();
     }
   }
 
@@ -299,7 +310,7 @@ class DB {
       }
       return franchises;
     } finally {
-      connection.end();
+      connection.release();
     }
   }
 
@@ -320,7 +331,7 @@ class DB {
 
       return franchise;
     } finally {
-      connection.end();
+      connection.release();
     }
   }
 
@@ -333,7 +344,7 @@ class DB {
       ]);
       return { id: insertResult.insertId, franchiseId, name: store.name };
     } finally {
-      connection.end();
+      connection.release();
     }
   }
 
@@ -342,7 +353,7 @@ class DB {
     try {
       await this.query(connection, `DELETE FROM store WHERE franchiseId=? AND id=?`, [franchiseId, storeId]);
     } finally {
-      connection.end();
+      connection.release();
     }
   }
 
@@ -366,7 +377,7 @@ class DB {
       }
       return [users, more];
     } finally {
-      connection.end();
+      connection.release();
     }
   }
 
@@ -384,7 +395,7 @@ class DB {
         throw new StatusCodeError('unable to delete user', 500);
       }
     } finally {
-      connection.end();
+      connection.release();
     }
   }
 
@@ -417,7 +428,7 @@ class DB {
   async getConnection() {
     // Make sure the database is initialized before trying to get a connection.
     await this.initialized;
-    return this._getConnection();
+    return this.pool.getConnection();
   }
 
   async _getConnection(setUse = true) {
