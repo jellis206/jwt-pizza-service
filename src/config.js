@@ -22,4 +22,10 @@ module.exports = {
     userId: process.env.METRICS_USER_ID || '',
     apiKey: process.env.METRICS_API_KEY || '',
   },
+  logging: {
+    source: process.env.LOGGING_SOURCE || 'jwt-pizza-service-logging-dev',
+    endpointUrl: process.env.LOGGING_ENDPOINT_URL || 'logging-endpoint-placeholder',
+    accountId: process.env.LOGGING_ACCOUNT_ID || 'logging-account-placeholder',
+    apiKey: process.env.LOGGING_API_KEY || 'logging-api-key-placeholder',
+  },
 };
