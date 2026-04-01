@@ -38,7 +38,11 @@ class Logger {
 
   sanitize(logData) {
     let data = JSON.stringify({ _msg: this.toMessage(logData), ...logData });
-    return data.replace(/"password"\s*:\s*"(?:[^"\\]|\\.)*"/g, '"password":"*****"');
+    // Sanitize top-level password fields
+    data = data.replace(/"password"\s*:\s*"(?:[^"\\]|\\.)*"/g, '"password":"*****"');
+    // Sanitize password fields inside nested JSON strings (double-escaped quotes)
+    data = data.replace(/\\"password\\"\s*:\s*\\"(?:[^"\\]|\\.)*\\"/g, '\\"password\\":\\"*****\\"');
+    return data;
   }
 
   toMessage(logData) {

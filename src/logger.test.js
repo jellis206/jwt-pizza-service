@@ -27,6 +27,12 @@ describe('logger module', () => {
       expect(result).not.toContain('secret');
     });
 
+    it('masks password fields nested inside reqBody strings', () => {
+      const reqBody = JSON.stringify({ email: 'a@b.com', password: 'secret' });
+      const result = logger.sanitize({ method: 'POST', path: '/api/auth', statusCode: 200, reqBody });
+      expect(result).not.toContain('secret');
+    });
+
     it('leaves non-sensitive fields untouched', () => {
       const result = logger.sanitize({ email: 'a@b.com', name: 'Jay' });
       expect(result).toContain('a@b.com');
