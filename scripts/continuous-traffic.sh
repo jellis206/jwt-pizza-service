@@ -33,16 +33,7 @@ menu_loop() {
   done
 }
 
-# 2) Failed login every 20 seconds (auth failure metrics)
-bad_login_loop() {
-  while true; do
-    status=$(curl $CURL_OPTS -o /dev/null -w "%{http_code}" -X PUT "$host/api/auth" \
-      -d '{"email":"unknown@jwt.com","password":"bad"}' \
-      -H 'Content-Type: application/json')
-    echo "[$(date)] bad_login: $status"
-    sleep 20
-  done
-}
+# 2) Bad login loop removed - only generates noise, not useful for chaos detection
 
 # 3) Login, buy pizza, logout - every 30 seconds
 buy_loop() {
@@ -98,7 +89,6 @@ session_loop() {
 
 # Launch all loops in background
 menu_loop &
-bad_login_loop &
 buy_loop &
 session_loop &
 
