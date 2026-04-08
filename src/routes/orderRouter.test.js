@@ -254,4 +254,44 @@ describe('Order Router', () => {
       expect(response.status).toBe(401);
     });
   });
+
+  describe('PUT /api/order/chaos/:state', () => {
+    test('admin can enable chaos', async () => {
+      const adminUser = await createAdminUser();
+      const { token } = await loginUser(adminUser.email, 'adminpass');
+
+      const response = await request(app).put('/api/order/chaos/true').set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ chaos: true });
+    });
+
+    test('admin can disable chaos', async () => {
+      const adminUser = await createAdminUser();
+      const { token } = await loginUser(adminUser.email, 'adminpass');
+
+      await request(app).put('/api/order/chaos/true').set('Authorization', `Bearer ${token}`);
+      const response = await request(app).put('/api/order/chaos/false').set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ chaos: false });
+    });
+
+    test('non-admin cannot enable chaos', async () => {
+      const email = `diner${Date.now()}@test.com`;
+      await createTestUser('Diner', email, 'password123');
+      const { token } = await loginUser(email, 'password123');
+
+      const response = await request(app).put('/api/order/chaos/true').set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ chaos: false });
+    });
+
+    test('fails without authentication', async () => {
+      const response = await request(app).put('/api/order/chaos/true');
+
+      expect(response.status).toBe(401);
+    });
+  });
 });
