@@ -47,7 +47,7 @@ buy_loop() {
       order_resp=$(curl $CURL_OPTS -X POST "$host/api/order" \
         -H 'Content-Type: application/json' \
         -H "Authorization: Bearer $token" \
-        -d '{"franchiseId":1,"storeId":1,"items":[{"menuId":1,"description":"Veggie","price":0.05}]}')
+        -d '{"franchiseId":1,"storeId":1,"items":[{"menuId":1,"description":"Veggie","price":0.05},{"menuId":2,"description":"Pepperoni","price":0.0042},{"menuId":3,"description":"Margarita","price":0.0042},{"menuId":4,"description":"Crusty","price":0.0028},{"menuId":5,"description":"Charred Leopard","price":0.0099}]}')
       order_status=$?
 
       # Check for chaos report URL
