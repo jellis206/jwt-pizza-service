@@ -164,8 +164,10 @@ describe('Franchise Router', () => {
 
       const franchiseId = createResponse.body.id;
 
-      // Now delete it
-      const response = await request(app).delete(`/api/franchise/${franchiseId}`);
+      // Now delete it (with admin auth)
+      const response = await request(app)
+        .delete(`/api/franchise/${franchiseId}`)
+        .set('Authorization', `Bearer ${token}`);
 
       expect(response.status).toBe(200);
       expect(response.body.message).toBe('franchise deleted');

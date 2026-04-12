@@ -24,11 +24,18 @@ app.use(setAuthUser);
 app.use(metrics.requestTracker);
 app.use(logger.httpLogger);
 metrics.sendMetricsPeriodically(10000);
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'https://pizza.urjellis.com').split(',');
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
   next();
 });
 
@@ -43,7 +50,7 @@ apiRouter.use('/docs', (req, res) => {
   res.json({
     version: version.version,
     endpoints: [...authRouter.docs, ...userRouter.docs, ...orderRouter.docs, ...franchiseRouter.docs],
-    config: { factory: config.factory.url, db: config.db.connection.host },
+    config: { factory: config.factory.url },
   });
 });
 
@@ -63,7 +70,7 @@ app.use('*', (req, res) => {
 // Default error handler for all exceptions and errors.
 app.use((err, req, res, next) => {
   logger.log('error', 'exception', { message: err.message, stack: err.stack });
-  res.status(err.statusCode ?? 500).json({ message: err.message, stack: err.stack });
+  res.status(err.statusCode ?? 500).json({ message: err.message });
   next();
 });
 

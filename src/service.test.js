@@ -24,11 +24,17 @@ describe('Service', () => {
     expect(response.body.message).toBe('unknown endpoint');
   });
 
-  test('CORS headers are set', async () => {
-    const response = await request(app).get('/').set('Origin', 'http://localhost:3000');
+  test('CORS headers are set for allowed origin', async () => {
+    const response = await request(app).get('/').set('Origin', 'https://pizza.urjellis.com');
 
-    expect(response.headers['access-control-allow-origin']).toBe('http://localhost:3000');
+    expect(response.headers['access-control-allow-origin']).toBe('https://pizza.urjellis.com');
     expect(response.headers['access-control-allow-credentials']).toBe('true');
+  });
+
+  test('CORS headers are not set for disallowed origin', async () => {
+    const response = await request(app).get('/').set('Origin', 'https://evil-attacker.com');
+
+    expect(response.headers['access-control-allow-origin']).toBeUndefined();
   });
 
   test('Error handler catches errors without status code', async () => {

@@ -106,20 +106,24 @@ class DB {
   async updateUser(userId, name, email, password) {
     const connection = await this.getConnection();
     try {
-      const params = [];
+      const setClauses = [];
+      const values = [];
       if (password) {
         const hashedPassword = await bcrypt.hash(password, 10);
-        params.push(`password='${hashedPassword}'`);
+        setClauses.push('password=?');
+        values.push(hashedPassword);
       }
       if (email) {
-        params.push(`email='${email}'`);
+        setClauses.push('email=?');
+        values.push(email);
       }
       if (name) {
-        params.push(`name='${name}'`);
+        setClauses.push('name=?');
+        values.push(name);
       }
-      if (params.length > 0) {
-        const query = `UPDATE user SET ${params.join(', ')} WHERE id=${userId}`;
-        await this.query(connection, query);
+      if (setClauses.length > 0) {
+        values.push(userId);
+        await this.query(connection, `UPDATE user SET ${setClauses.join(', ')} WHERE id=?`, values);
       }
       return this.getUser(email, password);
     } finally {
@@ -196,11 +200,16 @@ class DB {
       const orderId = orderResult.insertId;
       for (const item of order.items) {
         const menuId = await this.getID(connection, 'id', item.menuId, 'menu');
+        const menuRows = await this.query(connection, `SELECT price, description FROM menu WHERE id=?`, [menuId]);
+        const actualPrice = menuRows[0].price;
+        const actualDescription = menuRows[0].description;
         await this.query(
           connection,
           `INSERT INTO orderItem (orderId, menuId, description, price) VALUES (?, ?, ?, ?)`,
-          [orderId, menuId, item.description, item.price]
+          [orderId, menuId, actualDescription, actualPrice]
         );
+        item.price = actualPrice;
+        item.description = actualDescription;
       }
       return { ...order, id: orderId };
     } finally {
