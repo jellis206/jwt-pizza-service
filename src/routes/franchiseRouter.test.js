@@ -172,6 +172,18 @@ describe('Franchise Router', () => {
       expect(response.status).toBe(200);
       expect(response.body.message).toBe('franchise deleted');
     });
+
+    test('rejects unauthenticated delete', async () => {
+      const response = await request(app).delete('/api/franchise/1');
+      expect(response.status).toBe(401);
+    });
+
+    test('rejects non-admin delete', async () => {
+      const dinerUser = await createTestUser();
+      const { token } = await loginUser(dinerUser.email, 'password123');
+      const response = await request(app).delete('/api/franchise/1').set('Authorization', `Bearer ${token}`);
+      expect(response.status).toBe(403);
+    });
   });
 
   describe('POST /api/franchise/:franchiseId/store', () => {
