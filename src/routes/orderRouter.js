@@ -119,8 +119,8 @@ orderRouter.post(
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     const orderReq = req.body;
-    const totalRevenue = (orderReq.items || []).reduce((sum, item) => sum + (item.price || 0), 0);
     const order = await DB.addDinerOrder(req.user, orderReq);
+    const totalRevenue = (order.items || []).reduce((sum, item) => sum + (item.price || 0), 0);
     const start = Date.now();
     const factoryReqBody = { diner: { id: req.user.id, name: req.user.name, email: req.user.email }, order };
     logger.log('info', 'factory', { request: factoryReqBody });

@@ -10,6 +10,7 @@ const version = require('./version.json');
 const config = require('./config.js');
 
 const app = express();
+app.disable('x-powered-by');
 app.use(express.json());
 app.use(
   rateLimit({
@@ -33,6 +34,9 @@ app.use((req, res, next) => {
   }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   if (req.method === 'OPTIONS') {
     return res.sendStatus(204);
   }

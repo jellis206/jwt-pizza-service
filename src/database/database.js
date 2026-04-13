@@ -310,9 +310,11 @@ class DB {
       }
 
       franchiseIds = franchiseIds.map((v) => v.objectId);
+      const placeholders = franchiseIds.map(() => '?').join(',');
       const franchises = await this.query(
         connection,
-        `SELECT id, name FROM franchise WHERE id in (${franchiseIds.join(',')})`
+        `SELECT id, name FROM franchise WHERE id in (${placeholders})`,
+        franchiseIds
       );
       for (const franchise of franchises) {
         await this.getFranchise(franchise);
@@ -476,7 +478,7 @@ class DB {
           const defaultAdmin = {
             name: '常用名字',
             email: 'a@jwt.com',
-            password: 'admin',
+            password: process.env.DEFAULT_ADMIN_PASSWORD || 'Xk9#mP2$vL7nQ4wR',
             roles: [{ role: Role.Admin }],
           };
           this.addUser(defaultAdmin);
