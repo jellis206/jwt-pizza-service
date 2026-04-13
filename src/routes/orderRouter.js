@@ -105,10 +105,10 @@ orderRouter.get(
   })
 );
 
-// chaosMiddleware
+// chaosMiddleware — corrupt the request so the factory rejects it
 orderRouter.post('/', (req, res, next) => {
   if (enableChaos && Math.random() < 0.5) {
-    throw new StatusCodeError('Chaos monkey', 500);
+    req.body = { chaos: true };
   }
   next();
 });
