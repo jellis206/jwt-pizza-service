@@ -119,6 +119,16 @@ orderRouter.post(
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     const orderReq = req.body;
+    if (!orderReq.items || !Array.isArray(orderReq.items) || orderReq.items.length === 0) {
+      throw new StatusCodeError('order must contain items', 400);
+    }
+    const menu = await DB.getMenu();
+    const menuIds = new Set(menu.map((item) => item.id));
+    for (const item of orderReq.items) {
+      if (!menuIds.has(item.menuId)) {
+        throw new StatusCodeError(`invalid menu item id: ${item.menuId}`, 400);
+      }
+    }
     const order = await DB.addDinerOrder(req.user, orderReq);
     const totalRevenue = (order.items || []).reduce((sum, item) => sum + (item.price || 0), 0);
     const start = Date.now();
